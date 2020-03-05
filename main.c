@@ -5,26 +5,11 @@
 #include <pthread.h>
 #include <time.h>
 
+#include "common.h"
+#include "zipfianGenerator.h"
+#include "benchmark_routine.h"
+//header로 옮기기
 
-#define GB 1073741824
-
-#define UNROLL2(x) x x
-#define UNROLL4(x) UNROLL2(x) UNROLL2(x)
-#define UNROLL8(x) UNROLL4(x) UNROLL4(x)
-#define UNROLL16(x) UNROLL8(x) UNROLL8(x)
-#define UNROLL32(x) UNROLL16(x) UNROLL16(x)
-#define UNROLL64(x) UNROLL32(x) UNROLL32(x)
-#define UNROLL128(x) UNROLL64(x) UNROLL64(x)
-#define UNROLL256(x) UNROLL128(x) UNROLL128(x)
-#define UNROLL512(x) UNROLL256(x) UNROLL256(x)
-#define UNROLL1024(x) UNROLL512(x) UNROLL512(x)
-
-
-size_t working_set_size = 1;
-long long  working_set_per_thread = 0;
-int zipfian_number = 0;// common.h에 있을 전역 사용 변수 같은애들!
-int number_of_threads = 1;
-size_t memory_alloc_size = 1;
 
 void *mem;
 
@@ -35,9 +20,11 @@ pthread_mutex_t mutex_lock;
 
 void parse_input(int argc, char *argv[]);
 
-
-void *t_func(void *data);
-void* forwSequentialRead(void* start_address);
+size_t	working_set_size = 1;
+long long working_set_per_thread = 0;
+int	zipfian_number = 0;
+int	number_of_threads = 1;
+size_t	memory_alloc_size = 1;// 1GB default	
 
 
 
@@ -54,18 +41,12 @@ int main(int argc, char *argv[])
 	memset(mem, 0, size);
 	
 	
-	//mem[GB-1]=1;
-	//print first of memory address
-	//printf("mem address: %p, %p, %ld\n", mem,&mem[1], &mem[GB-1]-mem);
-
 	//calculate working set size per thread
 	working_set_per_thread = (working_set_size*GB)/number_of_threads;//Is it possible with size_t?
 
 	printf("working_set_per_thread: %lld\n", working_set_per_thread);
 	
-	//printf("test val: %d %d %d\n", mem[working_set_per_thread-1], mem[GB-1],*(mem+working_set_per_thread-1));
 
-	//int data=0;//test
 	
 	struct timespec tspec;
 	long long start, end;
@@ -75,11 +56,11 @@ int main(int argc, char *argv[])
 	int *status = (int*)malloc(sizeof(int)*number_of_threads);
 	
 	clock_gettime(CLOCK_REALTIME, &tspec);
-	start = tspec.tv_nsec;
+	start = tspec.tv_sec * NANO + tspec.tv_nsec;
 	for(int i=0;i<number_of_threads;i++)
 	{
 		void* start_address = mem + (i*working_set_per_thread);
-		printf("start address: %p mem arr: %lld\n", start_address, mem);
+		//printf("start address: %p mem arr: %lld\n", start_address, mem);
 		if(pthread_create(&workers[i], NULL, forwSequentialRead, (void*)start_address)<0)
 		{
 			perror("thread create error: ");
@@ -87,7 +68,36 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	int result=0;
+	double result;
+	for(int i=0;i<number_of_threads;i++)
+	{
+		pthread_join(workers[i],(void*)&result);
+		printf("status[%d]: %.3lf\n",i, result);
+	}
+
+	clock_gettime(CLOCK_REALTIME, &tspec);
+	end = tspec.tv_sec * NANO + tspec.tv_nsec;
+
+	res = (double)(end - start)/NANO;
+	
+	printf("read result: %.3lf\n", res);
+	printf("read result: %.3lf\n", (res*NANO)/(working_set_size*GB));//?? ns/access
+ 
+
+	clock_gettime(CLOCK_REALTIME, &tspec);
+	start = tspec.tv_sec * NANO + tspec.tv_nsec;
+	for(int i=0;i<number_of_threads;i++)
+	{
+		void* start_address = mem + (i*working_set_per_thread);
+	//	printf("start address: %p mem arr: %lld\n", start_address, mem);
+		if(pthread_create(&workers[i], NULL, forwSequentialWrite, (void*)start_address)<0)
+		{
+			perror("thread create error: ");
+			exit(0);
+		}
+	}
+
+	//int result=0;
 	for(int i=0;i<number_of_threads;i++)
 	{
 		pthread_join(workers[i],(void*)&result);
@@ -95,69 +105,19 @@ int main(int argc, char *argv[])
 	}
 
 	clock_gettime(CLOCK_REALTIME, &tspec);
-	end = tspec.tv_nsec;
+	end = tspec.tv_sec * NANO + tspec.tv_nsec;
 
-	res = (double)(end - start)/1000000;
+	res = (double)(end - start)/NANO;
 	
-	printf("final result: %.3lf\n", res);
- 
+	printf("write result: %.3lf\n", res);
+
+
 
 	free(status);
 	free(workers);
 	free(mem);//필요하면 free하는 부분 함수로 만드는게 좋을 듯?
 	return 0;
 }
-
-
-
-
-
-
-void *t_func(void *data)
-{
-	int i=0;
-	int a=(*((int *)data))++;
-	printf("i=%d\n",i++);
-	pthread_mutex_lock(&mutex_lock);
-	//printf("%d\n",testnum);
-	testnum++;
-	pthread_mutex_unlock(&mutex_lock);
-	return (void *)(a);
-	
-}
-
-void* forwSequentialRead(void* start_address)
-{
-	register char val;
-	volatile char* endptr = (char*)start_address + (working_set_per_thread);
-	//printf("valid?: %ld\n", endptr-(u_int64_t*)start_address);
-	clock_t start, end;
-	clock_t elapsed;
-	double res;
-
-	//printf("start time: %d\n", start);
-	for(volatile char* curptr = (char*)start_address; curptr<endptr; )
-	{
-		start = clock();
-		UNROLL512(val = *curptr++;)
-		end = clock();
-
-		elapsed += (end - start);
-
-	}
-	res = (double)elapsed / CLOCKS_PER_SEC;
-	printf("clock: %.3f\n", res);
-	pthread_mutex_lock(&mutex_lock);
-	total_run_time += res;
-	printf("total: %.3f\n", total_run_time);
-	pthread_mutex_unlock(&mutex_lock);
-
-	return (void*) &res;
-}
-
-
-
-
 
 
 
