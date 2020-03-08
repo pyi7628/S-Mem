@@ -15,24 +15,22 @@
 
 //===== Main program ========================================================
 
-int* random_value_generator(double S, int N)//이름 바꾸기!!
+void random_value_generator(double S, double N, int number_of_zipfian, int** zipf_arr)//이름 바꾸기!!
 {
   char   temp_string[256];      // Temporary string variable
   double alpha = S;                 // Alpha parameter
-  double n = 1;                     // N parameter, 임의 지정
-  int    num_values = N;            // Number of values
+  double n = N;                     // N parameter
+  int    num_values = number_of_zipfian;            // Number of values
   int    zipf_rv;               // Zipf random variable
   int    i;                     // Loop counter
-  int*	 zipf_arr = (int*)malloc(sizeof(int) * (num_values+1));
+  *zipf_arr = (int*)malloc(sizeof(int) * (num_values+1));
   rand_val(1);//init random number seed
 
   for(i = 0;i<num_values; i++)
   {
 	zipf_rv = zipf(alpha, n);
-	zipf_arr[i] = zipf_rv;
+	*zipf_arr[i] = zipf_rv;
   }
-
-  return zipf_arr;
   //fprintf(fp, "%d \n", zipf_rv);//원래 기존 잡는 메모리에 넣을려 했는데 자료형이 안맞는다잉??!, 느리더라도 그냥 file로 쓰고 읽을까
   
 }
