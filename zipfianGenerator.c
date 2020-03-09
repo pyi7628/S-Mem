@@ -20,17 +20,22 @@ void random_value_generator(double S, double N, int number_of_zipfian, int** zip
   char   temp_string[256];      // Temporary string variable
   double alpha = S;                 // Alpha parameter
   double n = N;                     // N parameter
-  int    num_values = number_of_zipfian;            // Number of values
+  int    num_values =1024;
+	 // number_of_zipfian;            // Number of values
   int    zipf_rv;               // Zipf random variable
   int    i;                     // Loop counter
+  printf("1\n");
   *zipf_arr = (int*)malloc(sizeof(int) * (num_values+1));
+  printf("2\n");
   rand_val(1);//init random number seed
-
+  printf("3\n");
   for(i = 0;i<num_values; i++)
   {
+	  printf("%d\n",i);
 	zipf_rv = zipf(alpha, n);
-	*zipf_arr[i] = zipf_rv;
+	*(*zipf_arr + i) = zipf_rv;
   }
+  printf("zi: %d %d\n", *(*zipf_arr+0),*(*zipf_arr+5));
   //fprintf(fp, "%d \n", zipf_rv);//원래 기존 잡는 메모리에 넣을려 했는데 자료형이 안맞는다잉??!, 느리더라도 그냥 file로 쓰고 읽을까
   
 }
