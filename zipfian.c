@@ -73,10 +73,6 @@ void main(int argc, char *argv[])
   int    i;                     // Loop counter
 
 
-  // Output banner
-  printf("---------------------------------------- genzipf.c ----- \n");
-  printf("-     Program to generate Zipf random variables        - \n");
-  printf("-------------------------------------------------------- \n");
 
   if(argc>1) parse_input(argc, argv);
   // Prompt for output filename and then create/open the file
@@ -86,7 +82,7 @@ void main(int argc, char *argv[])
     printf("ERROR in creating output file (%s) \n", file_name);
     exit(1);
   }
-
+ printf("alpha: %lf\n",alpha);
   // Prompt for random number seed and then use it
   rand_val(random_seed);
 
@@ -96,10 +92,6 @@ void main(int argc, char *argv[])
 
   // Prompt for number of values to generate
 
-  // Output "generating" message
-  printf("-------------------------------------------------------- \n");
-  printf("-  Generating samples to file                          - \n");
-  printf("-------------------------------------------------------- \n");
 
   int *count=(int*)malloc(sizeof(int)*(n+1));
   for(int j=0;j<=n;j++) 
@@ -115,38 +107,22 @@ void main(int argc, char *argv[])
     fprintf(fp, "%d \n", zipf_rv);
     count[zipf_rv]++;
   }
-  /*modifyed by yi*/
-  printf("========================================================\n");
-  for(int j=1;j<=n;j++)
-  {
-	  printf("%d ",count[j]);
-  }
-  printf("\n========================================================\n");
-  for(int j=1;j<=n;j++)
-  {
-	  printf("%.2lf ",(double)count[j]/(double)num_values);
-  }
-  printf("\n========================================================\n");
+  /*modifyed by yi 누적분포 구하는 식*/
   double sum=0;
   int flag=0;
+  double percentage20 = 0;
   for(int j=1;j<=n;j++)
   {
-	  sum+=(double)count[j]/(double)num_values;
-	//  printf("value: %lf\n", )
+	  sum += (double)count[j]/(double)num_values;
+	  //
 	  if((j*100/(int)n) > 20 && flag==0)
 	  {
-		  printf("\n---20---\n");
+		  percentage20 = sum;
 		  flag=1;
 	  }
-	  printf("%.2lf ",sum);
+	  printf("%.12lf\n", sum);
   }
-  printf("\n========================================================\n");
-
-
-  // Output "done" message and close the output file
-  printf("-------------------------------------------------------- \n");
-  printf("-  Done! \n");
-  printf("-------------------------------------------------------- \n");
+  printf("\n--20--: %.12lf\n", percentage20);
   fclose(fp);
 }
 
@@ -235,6 +211,7 @@ double rand_val(int seed)
   // Return a random value between 0.0 and 1.0
   return((double) x / m);
 }
+
 void parse_input(int argc, char *argv[])
 {
 	int opt;
