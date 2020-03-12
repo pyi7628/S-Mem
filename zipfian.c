@@ -48,6 +48,8 @@
 #include <stdio.h>              // Needed for printf()
 #include <stdlib.h>             // Needed for exit() and ato*()
 #include <math.h>               // Needed for pow()
+#include <string.h>		// Needed for strcpy()
+#include <unistd.h>		// Needed for getopt()
 
 //----- Constants -----------------------------------------------------------
 #define  FALSE          0       // Boolean false
@@ -56,16 +58,17 @@
 //----- Function prototypes -------------------------------------------------
 int      zipf(double alpha, int n);  // Returns a Zipf random variable
 double   rand_val(int seed);         // Jain's RNG
+void	 parse_input(int argc, char *argv[]);
 
+char   file_name[256];        // Output file name string
+int 	random_seed;	      // random seed value
+double alpha;                 // Alpha parameter
+double n;                     // N parameter
+int    num_values;            // Number of values
 //===== Main program ========================================================
-void main(void)
+void main(int argc, char *argv[])
 {
   FILE   *fp;                   // File pointer to output file
-  char   file_name[256];        // Output file name string
-  char   temp_string[256];      // Temporary string variable
-  double alpha;                 // Alpha parameter
-  double n;                     // N parameter
-  int    num_values;            // Number of values
   int    zipf_rv;               // Zipf random variable
   int    i;                     // Loop counter
 
@@ -75,9 +78,8 @@ void main(void)
   printf("-     Program to generate Zipf random variables        - \n");
   printf("-------------------------------------------------------- \n");
 
+  if(argc>1) parse_input(argc, argv);
   // Prompt for output filename and then create/open the file
-  printf("Output file name ===================================> ");
-  scanf("%s", file_name);
   fp = fopen(file_name, "w");
   if (fp == NULL)
   {
@@ -86,24 +88,13 @@ void main(void)
   }
 
   // Prompt for random number seed and then use it
-  printf("Random number seed (greater than 0) ================> ");
-  scanf("%s", temp_string);
-  rand_val((int) atoi(temp_string));
+  rand_val(random_seed);
 
   // Prompt for alpha value
-  printf("Alpha value ========================================> ");
-  scanf("%s", temp_string);
-  alpha = atof(temp_string);
 
   // Prompt for N value
-  printf("N value ============================================> ");
-  scanf("%s", temp_string);
-  n = atoi(temp_string);
 
   // Prompt for number of values to generate
-  printf("Number of values to generate =======================> ");
-  scanf("%s", temp_string);
-  num_values = atoi(temp_string);
 
   // Output "generating" message
   printf("-------------------------------------------------------- \n");
@@ -137,9 +128,16 @@ void main(void)
   }
   printf("\n========================================================\n");
   double sum=0;
+  int flag=0;
   for(int j=1;j<=n;j++)
   {
 	  sum+=(double)count[j]/(double)num_values;
+	//  printf("value: %lf\n", )
+	  if((j*100/(int)n) > 20 && flag==0)
+	  {
+		  printf("\n---20---\n");
+		  flag=1;
+	  }
 	  printf("%.2lf ",sum);
   }
   printf("\n========================================================\n");
@@ -236,4 +234,42 @@ double rand_val(int seed)
 
   // Return a random value between 0.0 and 1.0
   return((double) x / m);
+}
+void parse_input(int argc, char *argv[])
+{
+	int opt;
+	while((opt = getopt(argc, argv, "f:r:a:n:N:")) != -1)
+	{
+		switch(opt)
+		{
+			case 'f':
+			
+				strcpy(file_name, optarg);
+				break;
+			
+			case 'r':
+			
+				random_seed = atoi(optarg);
+				break;
+
+			case 'a': 
+				
+				alpha = atof(optarg);
+				break;
+			case 'n':
+
+				n = atof(optarg);
+				break;
+
+			case 'N':
+
+				num_values = atoi(optarg);
+				break;
+
+			
+			default :
+				fprintf(stderr, "ERROR: Invalid option.\n");
+		}
+
+	}
 }

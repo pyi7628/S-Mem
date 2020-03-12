@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
 void parse_input(int argc, char *argv[])
 {
 	int opt;
-	while((opt = getopt(argc, argv, "w:z:j:m:r:n:")) != -1)
+	while((opt = getopt(argc, argv, "w:z:j:m:rn:")) != -1)
 	{
 		switch(opt)
 		{
