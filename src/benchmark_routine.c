@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <pthread.h>
+#include <stdlib.h>
 
 #include "common.h"
 #include "benchmark_routine.h"
@@ -20,7 +21,7 @@ void* forwSequentialRead(void* start_address)
 	struct timespec ts;
 
 	//printf("start time: %d\n", start);
-	for(volatile char* curptr = (char*)start_address; curptr<endptr; )
+	for(volatile char* curptr = (char*)start_address; curptr < endptr; )
 	{
 		clock_gettime(CLOCK_REALTIME, &ts);
 		start = ts.tv_sec * NANO + ts.tv_nsec;
@@ -41,6 +42,7 @@ void* forwSequentialRead(void* start_address)
 	pthread_mutex_unlock(&mutex_lock);
 
 	return (void*)(&res);
+
 }
 
 void* forwSequentialWrite(void* start_address)
@@ -77,11 +79,32 @@ void* forwSequentialWrite(void* start_address)
 	return (void*)(&res);
 }
 
+void* randomReadTest(void* start_address, char* zipf_arr)
+{
+	register char val;
+	volatile char* startptr = (char*)start_address;
+	clock_t start, end;
+	clock_t elapsed;
+	double res;
+	struct timespec ts;
+	
 
-//zipf 자료형 생각해보기
-//longlong접근하는거 시간 들어가는거 영향 괜찮을지
-//end_address 가 안필요할 수도!
-/*int randomRead(void* start_address, void* end_address, long long* zipf_rv)
+	long long total_passes=0;
+	int cur_passes=0;
+	int i=0;
+	for(;  1024*1024*4	> total_passes; )
+	{
+
+		UNROLL512(val = *(startptr + zipf_arr[i++];)
+
+
+	}
+
+	return (void*)(&res);
+
+}
+/*
+int randomRead(void* start_address, void* end_address, long long* zipf_rv)
 {
 	register uint64_t val;
 	volatile uint64_t* endptr = (uint64_t*)end_address;

@@ -2,6 +2,10 @@
 #define NANO 1000000000
 #define ZIPFVALUENUM 4194304
 #define ZIPFCUMULNUM 1048576
+#define DURATION_MS 5000
+
+extern int64_t g_ticks_per_ms;
+extern double g_ns_per_tick;
 
 
 extern size_t working_set_size;

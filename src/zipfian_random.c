@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <time.h>//난수
 
 //#include "common.h"
 #define ZIPFVALUENUM 4194304
@@ -59,19 +59,27 @@ int search_cumul(double* cumul_arr, double random_value)
 	int i = (left + right) / 2;
 	while(left < right && random_value != cumul_arr[i])
 	{
-		if(random_value > cumul_arr[i])
+		if(random_value < cumul_arr[i])
 		{
-			right = i;
+			right = i-1;
 			i = (left + right) / 2;
 		}
 		else
 		{
-			left = i;
+			left = i+1;
 			i = (left + right) / 2;
 		}
 	}
 
-	return i;
+	return i;//실제 value보다 1작음, 실제 offset값으로 맞는 값
+}
+
+double random_value_gen()
+{
+	srand(clock());
+	int random_value = rand();
+	double output = (double)random_value/RAND_MAX;
+	return output;
 }
 
 int main()
@@ -79,8 +87,18 @@ int main()
 	double* zipf_arr=NULL;
 	get_zipfian_cumul("../output/cumul_93.txt",&zipf_arr);
 
-	printf("zipf: %.7lf %.7lf\n", zipf_arr[0], zipf_arr[5]);
+	//printf("zipf: %.7lf %.7lf\n", zipf_arr[0], zipf_arr[5]);
 
-	printf("search: %d\n",search_cumul(zipf_arr, 1));
+	printf("1search: %d\n",search_cumul(zipf_arr, 1));
+	for(int i=0;i<1024;i++)
+	{
+		for(int j=0;j<1024*1024*16;j++)
+		{
+
+		
+			double gen=random_value_gen();
+			search_cumul(zipf_arr, gen);
+		}
+	}
 	return 0;
 }

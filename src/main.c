@@ -13,6 +13,7 @@
 #define TRUE 1
 #define FALSE 0
 
+//맨 처음 setup하는거 함수로 만들기
 size_t working_set_size = 1;
 long long  working_set_per_thread = 0;
 double zipfian_number = 0;// common.h에 있을 전역 사용 변수 같은애들!
@@ -21,7 +22,7 @@ size_t memory_alloc_size = 1;
 
 void *mem;
 
-///////////////////
+///////////////////코드 정리 필요!
 _Bool is_random = FALSE;
 int n_value = 1024;
 int number_of_zipfian = 4194304;
@@ -59,7 +60,7 @@ int main(int argc, char *argv[])
 	else
 	{
 		clock_gettime(CLOCK_REALTIME, &tspec);
-		start = tspec.tv_nsec;
+		start = tspec.tv_sec * NANO + tspec.tv_nsec;
 		for(int i=0;i<number_of_threads;i++)
 		{
 			void* start_address = mem + (i*working_set_per_thread);
@@ -79,9 +80,9 @@ int main(int argc, char *argv[])
 		}
 
 		clock_gettime(CLOCK_REALTIME, &tspec);
-		end = tspec.tv_nsec;
+		end = tspec.tv_sec * NANO + tspec.tv_nsec;
 
-		res = (double)(end - start)/1000000;
+		res = (double)(end - start)/NANO;
 		
 		printf("final result: %.3lf\n", res);
 		
