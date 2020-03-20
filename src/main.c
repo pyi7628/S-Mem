@@ -6,8 +6,8 @@
 #include <time.h>
 
 #include "common.h"
-#include "zipfianGenerator.h"
 #include "benchmark_routine.h"
+#include "zipfian_random.h"
 
 //common.h로 옮기기
 #define TRUE 1
@@ -57,7 +57,9 @@ int main(int argc, char *argv[])
 	if(is_random)
 	{
 		//random value 값 받아오는 부분!!
-		random_value_generator(zipfian_number, n_value, number_of_zipfian, &zipf_arr);
+		//get_zipfian_cumul("../output/cumul_90.txt");
+		init_zipfian_cumul();
+		printf("random: %d\n",get_random_access_value());
 	}
 	else
 	{

@@ -84,14 +84,18 @@ double random_value_gen()
 	return output;
 }
 
-int main()
+void init_zipfian_cumul()
+{
+	get_zipfian_cumul("output/cumul_90.txt",&zipf_arr);
+}
+
+//이걸로 주소값 offset설정해줌
+int get_random_access_value()
 {
 
-	get_zipfian_cumul("../output/cumul_90.txt",&zipf_arr);
-
 	double gen = random_value_gen();
-	int result = search_cumul(1);
-	printf("result: %d\n", result);
+	int result = search_cumul(gen);
+//	printf("result: %d\n", result);
 
-	return 0;
+	return result;
 }

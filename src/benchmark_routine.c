@@ -14,7 +14,7 @@ void* forwSequentialRead(void* start_address)
 {
 	register int64_t val;
 	volatile int64_t* endptr = (int64_t*)start_address + (working_set_per_thread/sizeof(int64_t));
-	printf("valid?: %ld  %ld\n",start_address, endptr);
+	//printf("valid?: %ld  %ld\n",start_address, endptr);
 	int64_t start, end;
 	int64_t elapsed;
 	double res;
@@ -33,8 +33,8 @@ void* forwSequentialRead(void* start_address)
 		passes++;
 	}
 	res = (double)elapsed * g_ns_per_tick;
-	printf(" elapsed: %ld clock: %.3f %lf\n",elapsed,  res, g_ns_per_tick);
-	printf(" ns/accesses: %.3f %ld\n", res/(512*passes), passes);
+	//printf(" elapsed: %ld clock: %.3f %lf\n",elapsed,  res, g_ns_per_tick);
+	printf("ns/accesses: %.3f %ld\n", res/(512*passes), passes);
 //	pthread_mutex_lock(&mutex_lock);
 	//total_run_time += res;
 //	printf("total: %.3f\n", total_run_time);
@@ -52,7 +52,7 @@ void* forwSequentialWrite(void* start_address)
 	int64_t start, end;
 	int64_t elapsed;
 	double res;
-	struct timespec ts;
+	int64_t passes = 0;
 
 	//printf("start time: %d\n", start);
 	for(volatile int64_t* curptr = (int64_t*)start_address; curptr<endptr; )
@@ -64,10 +64,10 @@ void* forwSequentialWrite(void* start_address)
 		end = stop_time();
 
 		elapsed += (end - start);
-
+		passes++;
 	}
 	res = (double)elapsed * g_ns_per_tick;
-	printf("clock: %.3f\n", res);
+	printf("ns/accesses: %.3f\n", res/(512*passes));
 //	pthread_mutex_lock(&mutex_lock);
 	//total_run_time += res;
 //	printf("total: %.3f\n", total_run_time);
