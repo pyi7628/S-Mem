@@ -33,7 +33,8 @@ int main(int argc, char *argv[])
 {
 	//parse input passed at stdin
 	if(argc>1) parse_input(argc, argv);
-	
+	//init time variable
+	init_timer();
 	//memory allocation
 	long long size = memory_alloc_size*GB;
 	mem = malloc(size);
@@ -44,6 +45,7 @@ int main(int argc, char *argv[])
 	working_set_per_thread = (working_set_size*GB)/number_of_threads;//Is it possible with size_t?
 
 	
+//	printf("last address: %ld\n", &mem[size-1]);
 	
 	struct timespec tspec;
 	long long start, end;

@@ -2,12 +2,13 @@
 #include <stdlib.h>
 #include <time.h>//난수
 
-//#include "common.h"
-#define ZIPFVALUENUM 4194304
-#define ZIPFCUMULNUM 1048576
-void get_zipfian_values(char* file_name ,double** zipf_arr)
+#include "common.h"
+
+double* zipf_arr=NULL;
+
+void get_zipfian_values(char* file_name ,double** arr)
 {
-	*zipf_arr = (double*)malloc(sizeof(double) * (ZIPFVALUENUM+1));
+	*arr = (double*)malloc(sizeof(double) * (ZIPFVALUENUM+1));
 	char temp[20] = {0,};
 	FILE *fp;
 	
@@ -20,16 +21,17 @@ void get_zipfian_values(char* file_name ,double** zipf_arr)
 	int i=0;
 	while(fgets(temp, 20, fp) != NULL)
 	{
-		*(*zipf_arr + i)=atof(temp);
-		printf("%d: %.8lf\n", i, *(*zipf_arr+i));
+		*(*arr + i)=atof(temp);
+		printf("%d: %.8lf\n", i, *(*arr+i));
 		i++;
 	}
 	fclose(fp);
 
 }
-void get_zipfian_cumul(char* file_name ,double** zipf_arr)
+
+void get_zipfian_cumul(char* file_name ,double** arr)
 {
-	*zipf_arr = (double*)malloc(sizeof(double) * (ZIPFCUMULNUM+1));
+	*arr = (double*)malloc(sizeof(double) * (ZIPFCUMULNUM+1));
 	char temp[20] = {0,};
 	FILE *fp;
 	
@@ -43,8 +45,8 @@ void get_zipfian_cumul(char* file_name ,double** zipf_arr)
 	while(fgets(temp, 20, fp) != NULL)
 	{
 		if(temp[0] == 'a') continue;
-		*(*zipf_arr + i) = atof(temp);
-		if(*(*zipf_arr + i) == 1) break;
+		*(*arr + i) = atof(temp);
+		if(*(*arr + i) == 1) break;
 		i++;
 	}
 
@@ -52,14 +54,14 @@ void get_zipfian_cumul(char* file_name ,double** zipf_arr)
 	
 }
 
-int search_cumul(double* cumul_arr, double random_value)
+int search_cumul(double random_value)
 {	
 	int left = 0;
 	int right = ZIPFCUMULNUM - 1;
 	int i = (left + right) / 2;
-	while(left < right && random_value != cumul_arr[i])
+	while(left < right && random_value != zipf_arr[i])
 	{
-		if(random_value < cumul_arr[i])
+		if(random_value < zipf_arr[i])
 		{
 			right = i-1;
 			i = (left + right) / 2;
@@ -84,21 +86,12 @@ double random_value_gen()
 
 int main()
 {
-	double* zipf_arr=NULL;
-	get_zipfian_cumul("../output/cumul_93.txt",&zipf_arr);
 
-	//printf("zipf: %.7lf %.7lf\n", zipf_arr[0], zipf_arr[5]);
+	get_zipfian_cumul("../output/cumul_90.txt",&zipf_arr);
 
-	printf("1search: %d\n",search_cumul(zipf_arr, 1));
-	for(int i=0;i<1024;i++)
-	{
-		for(int j=0;j<1024*1024*16;j++)
-		{
+	double gen = random_value_gen();
+	int result = search_cumul(1);
+	printf("result: %d\n", result);
 
-		
-			double gen=random_value_gen();
-			search_cumul(zipf_arr, gen);
-		}
-	}
 	return 0;
 }

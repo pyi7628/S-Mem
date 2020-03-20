@@ -12,34 +12,33 @@ pthread_mutex_t mutex_lock;
 //시간 측정에 관한거도 여기서 알아야 할듯..
 void* forwSequentialRead(void* start_address)
 {
-	register char val;
-	volatile char* endptr = (char*)start_address + (working_set_per_thread);
-	//printf("valid?: %ld\n", endptr-(u_int64_t*)start_address);
-	clock_t start, end;
-	clock_t elapsed;
+	register int64_t val;
+	volatile int64_t* endptr = (int64_t*)start_address + (working_set_per_thread/sizeof(int64_t));
+	printf("valid?: %ld  %ld\n",start_address, endptr);
+	int64_t start, end;
+	int64_t elapsed;
 	double res;
-	struct timespec ts;
+	int64_t passes=0;
 
 	//printf("start time: %d\n", start);
-	for(volatile char* curptr = (char*)start_address; curptr < endptr; )
+	for(volatile int64_t* curptr = (int64_t*)start_address; curptr < endptr; )
 	{
-		clock_gettime(CLOCK_REALTIME, &ts);
-		start = ts.tv_sec * NANO + ts.tv_nsec;
+		start = start_time();
 
 		UNROLL512(val = *curptr++;)
 
-		clock_gettime(CLOCK_REALTIME, &ts);
-		end = ts.tv_sec * NANO + ts.tv_nsec;
+		end = stop_time();
 
 		elapsed += (end - start);
-
+		passes++;
 	}
-	res = (double)elapsed / NANO;
-	printf("clock: %.3f\n", res);
-	pthread_mutex_lock(&mutex_lock);
+	res = (double)elapsed * g_ns_per_tick;
+	printf(" elapsed: %ld clock: %.3f %lf\n",elapsed,  res, g_ns_per_tick);
+	printf(" ns/accesses: %.3f %ld\n", res/(512*passes), passes);
+//	pthread_mutex_lock(&mutex_lock);
 	//total_run_time += res;
 //	printf("total: %.3f\n", total_run_time);
-	pthread_mutex_unlock(&mutex_lock);
+//	pthread_mutex_unlock(&mutex_lock);
 
 	return (void*)(&res);
 
@@ -47,38 +46,36 @@ void* forwSequentialRead(void* start_address)
 
 void* forwSequentialWrite(void* start_address)
 {
-	register char val = 0xFF;
-	volatile char* endptr = (char*)start_address + (working_set_per_thread);
+	register int64_t val = 0xFFFFFFFFFFFFFFFF;
+	volatile int64_t* endptr = (int64_t*)start_address + (working_set_per_thread/sizeof(int64_t));
 	//printf("valid?: %ld\n", endptr-(u_int64_t*)start_address);
-	clock_t start, end;
-	clock_t elapsed;
+	int64_t start, end;
+	int64_t elapsed;
 	double res;
 	struct timespec ts;
 
 	//printf("start time: %d\n", start);
-	for(volatile char* curptr = (char*)start_address; curptr<endptr; )
+	for(volatile int64_t* curptr = (int64_t*)start_address; curptr<endptr; )
 	{
-		clock_gettime(CLOCK_REALTIME, &ts);
-		start = ts.tv_sec * NANO + ts.tv_nsec;
+		start = start_time();
 
 		UNROLL512(*curptr++ = val;)
 
-		clock_gettime(CLOCK_REALTIME, &ts);
-		end = ts.tv_sec * NANO + ts.tv_nsec;
+		end = stop_time();
 
 		elapsed += (end - start);
 
 	}
-	res = (double)elapsed / NANO;
-//	printf("clock: %.3f\n", res);
-	pthread_mutex_lock(&mutex_lock);
+	res = (double)elapsed * g_ns_per_tick;
+	printf("clock: %.3f\n", res);
+//	pthread_mutex_lock(&mutex_lock);
 	//total_run_time += res;
 //	printf("total: %.3f\n", total_run_time);
-	pthread_mutex_unlock(&mutex_lock);
+//	pthread_mutex_unlock(&mutex_lock);
 
 	return (void*)(&res);
 }
-
+/*
 void* randomReadTest(void* start_address, char* zipf_arr)
 {
 	register char val;
@@ -90,20 +87,21 @@ void* randomReadTest(void* start_address, char* zipf_arr)
 	
 
 	long long total_passes=0;
-	int cur_passes=0;
-	int i=0;
+	int cur_pass=0;
+	//int i=0;
 	for(;  1024*1024*4	> total_passes; )
 	{
 
-		UNROLL512(val = *(startptr + zipf_arr[i++];)
+		UNROLL512(val = *(startptr + zipf_arr[cur_pass++];)
+		if(cur_pass>1)
 
 
 	}
 
 	return (void*)(&res);
 
-}
-/*
+}*/
+/*a
 int randomRead(void* start_address, void* end_address, long long* zipf_rv)
 {
 	register uint64_t val;

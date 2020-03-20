@@ -30,7 +30,8 @@ int64_t stop_time()
 	return tick;
 }
 
-void check_timer()
+//extern init
+void init_timer()
 {
 	int64_t start = start_time();
 	struct timespec duration, remainder;
@@ -44,10 +45,3 @@ void check_timer()
 	g_ns_per_tick =  1 / (double)g_ticks_per_ms * (double)1e6;
 }	
 
-int main()
-{
-	check_timer();
-	printf("%d, %f\n", g_ticks_per_ms, g_ns_per_tick);
-
-	return 0;
-}
