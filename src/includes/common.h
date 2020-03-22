@@ -13,7 +13,8 @@ extern long long  working_set_per_thread;
 extern double zipfian_number;// common.h에 있을 전역 사용 변수 같은애들!
 extern int number_of_threads;
 extern size_t memory_alloc_size;
-
+//random
+extern long long total_access_size;
 
 int64_t start_time();
 int64_t stop_time();

@@ -20,6 +20,10 @@ double zipfian_number = 0;// common.h에 있을 전역 사용 변수 같은애�
 int number_of_threads = 1;
 size_t memory_alloc_size = 1;
 
+//random
+long long total_access_size = 0;
+int accesses_per_iter = 0;
+
 void *mem;
 
 ///////////////////코드 정리 필요!
@@ -60,6 +64,11 @@ int main(int argc, char *argv[])
 		//get_zipfian_cumul("../output/cumul_90.txt");
 		init_zipfian_cumul();
 		printf("random: %d\n",get_random_access_value());
+
+		total_access_size = working_set_size*GB/sizeof(int64_t);
+		accesses_per_iter = total_access_size/ZIPFCUMULNUM;
+		printf("extern : %ld %d\n", total_access_size, accesses_per_iter);
+		randomRead(mem);
 	}
 	else
 	{

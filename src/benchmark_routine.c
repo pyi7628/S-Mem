@@ -16,7 +16,7 @@ void* forwSequentialRead(void* start_address)
 	volatile int64_t* endptr = (int64_t*)start_address + (working_set_per_thread/sizeof(int64_t));
 	//printf("valid?: %ld  %ld\n",start_address, endptr);
 	int64_t start, end;
-	int64_t elapsed;
+	int64_t elapsed = 0;
 	double res;
 	int64_t passes=0;
 
@@ -34,7 +34,7 @@ void* forwSequentialRead(void* start_address)
 	}
 	res = (double)elapsed * g_ns_per_tick;
 	//printf(" elapsed: %ld clock: %.3f %lf\n",elapsed,  res, g_ns_per_tick);
-	printf("ns/accesses: %.3f %ld\n", res/(512*passes), passes);
+	printf("ns/accesses: %lf %.3f %ld\n",res,  res/(512*passes), passes);
 //	pthread_mutex_lock(&mutex_lock);
 	//total_run_time += res;
 //	printf("total: %.3f\n", total_run_time);
@@ -67,7 +67,7 @@ void* forwSequentialWrite(void* start_address)
 		passes++;
 	}
 	res = (double)elapsed * g_ns_per_tick;
-	printf("ns/accesses: %.3f\n", res/(512*passes));
+	printf("ns/accesses: %lf %.3f\n", res, res/(512*passes));
 //	pthread_mutex_lock(&mutex_lock);
 	//total_run_time += res;
 //	printf("total: %.3f\n", total_run_time);
@@ -75,57 +75,149 @@ void* forwSequentialWrite(void* start_address)
 
 	return (void*)(&res);
 }
-/*
-void* randomReadTest(void* start_address, char* zipf_arr)
+
+int randomRead(void* start_address)
 {
-	register char val;
-	volatile char* startptr = (char*)start_address;
-	clock_t start, end;
-	clock_t elapsed;
-	double res;
-	struct timespec ts;
+	register int64_t val;
+	//딱히 안필요할듯??
+//	volatile int64_t* endptr = (int64_t*)start_address + (working_set_per_thread/sizeof(int64_t));
+	volatile int64_t* curptr = (int64_t*)start_address;
+
+	int64_t total_passes = 0;//총 몇개 pass까지 할지! 전체 메모리에 byte크기 나눈거
+	int32_t cur_passes = 0;//총 1M 범위의 access니까 이거 얼마나 발생시킬지! 위에꺼 1M으로나눈거
+	int zipf_temp_arr[520] = {0,};
 	
+	int64_t start, end;
+	int64_t elapsed = 0;
+	double res;
 
-	long long total_passes=0;
-	int cur_pass=0;
-	//int i=0;
-	for(;  1024*1024*4	> total_passes; )
+	for(;total_passes < total_access_size ;)
 	{
-
-		UNROLL512(val = *(startptr + zipf_arr[cur_pass++];)
-		if(cur_pass>1)
-
-
+		for(cur_passes = 0; cur_passes < ZIPFCUMULNUM; )
+		{
+			int zipf_index = 0;
+			//512access단위로 접근할 때 random값 생성하는 시간을 빼기 위함
+			for(int i=0; i<512; i++)
+			{
+				zipf_temp_arr[i] = get_random_access_value();
+			}
+			//int64_t check=curptr + 1;
+			//printf("%ld %ld\n", curptr, curptr+1);
+			start = start_time();	
+			UNROLL512(val = *(curptr+zipf_temp_arr[zipf_index++]);)//여기에 zipf_temp접근하는 시간은 빼야하지 않나? dummy?
+			end = stop_time();
+			
+			elapsed += (end - start);
+			cur_passes += 512;
+		}
+		total_passes += ZIPFCUMULNUM;
+		curptr = curptr + ZIPFCUMULNUM;
+	}
+	
+	int64_t dummy_elapsed = 0;
+	for(total_passes = 0; total_passes < total_access_size ;)
+	{
+		for(cur_passes = 0; cur_passes < ZIPFCUMULNUM; )
+		{
+			int zipf_index = 0;
+			//512access단위로 접근할 때 random값 생성하는 시간을 빼기 위함
+			for(int i=0; i<512; i++)
+			{
+				zipf_temp_arr[i] = get_random_access_value();
+			}
+			//int64_t check=curptr + 1;
+			//printf("%ld %ld\n", curptr, curptr+1);
+			start = start_time();	
+			UNROLL512(zipf_temp_arr[zipf_index++];)//여기에 zipf_temp접근하는 시간은 빼야하지 않나? dummy?
+			end = stop_time();
+			
+			dummy_elapsed += (end - start);
+			cur_passes += 512;
+		}
+		total_passes += ZIPFCUMULNUM;
+		curptr = curptr + ZIPFCUMULNUM;
 	}
 
-	return (void*)(&res);
 
-}*/
-/*a
-int randomRead(void* start_address, void* end_address, long long* zipf_rv)
-{
-	register uint64_t val;
-	volatile uint64_t* endptr = (uint64_t*)end_address;
-	volatile uint64_t* curptr = (uint64_t*)start_address;
-	for(long long offset_index=0; offset_index < working_set_per_thread; )
-	{
-		UNROLL512(val = *(curptr+zipf_rv[offset_index++]);)
-	}
+	res = (double)(elapsed - dummy_elapsed) * g_ns_per_tick;
 
-	return 0;
+	printf("ns/accesses: %lf %.3f\n", res,res/(total_passes));
+
+	return (void*) &res;
 
 }
 
-int randomWrite(void* start_address, void* end_address, long long* zipf_rv)
+void* randomWrite(void* start_address)
 {
-	register uint64_t val = 0xFFFFFFFFFFFFFFFF;
-	volatile uint64_t* endptr = (uint64_t*)end_address;
-	volatile uint64_t* curptr = (uint64_t*)start_address;
-	for(long long offset_index=0; offset_index < working_set_per_thread; )
+	register int64_t val = 0xFFFFFFFFFFFFFFFF;
+	volatile int64_t* curptr = (int64_t*)start_address;
+		//UNROLL512(*(curptr+zipf_rv[offset_index++]) = val;)
+	
+	int64_t total_passes = 0;//총 몇개 pass까지 할지! 전체 메모리에 byte크기 나눈거
+	int32_t cur_passes = 0;//총 1M 범위의 access니까 이거 얼마나 발생시킬지! 위에꺼 1M으로나눈거
+	int zipf_temp_arr[520] = {0,};
+	
+	int64_t start, end;
+	int64_t elapsed = 0;
+	double res;
+
+
+
+	for(;total_passes < total_access_size ;)
 	{
-		UNROLL512(*(curptr+zipf_rv[offset_index++]) = val;)
+		for(cur_passes = 0; cur_passes < ZIPFCUMULNUM; )
+		{
+			int zipf_index = 0;
+			//512access단위로 접근할 때 random값 생성하는 시간을 빼기 위함
+			for(int i=0; i<512; i++)
+			{
+				zipf_temp_arr[i] = get_random_access_value();
+			}
+			//int64_t check=curptr + 1;
+			//printf("%ld %ld\n", curptr, curptr+1);
+			start = start_time();	
+			UNROLL512( *(curptr+zipf_temp_arr[zipf_index++]) = val;)//여기에 zipf_temp접근하는 시간은 빼야하지 않나? dummy?
+			end = stop_time();
+			
+			elapsed += (end - start);
+			cur_passes += 512;
+		}
+		total_passes += ZIPFCUMULNUM;
+		curptr = curptr + ZIPFCUMULNUM;
 	}
 
-	return 0;
 
-}*/
+	int64_t dummy_elapsed = 0;
+	for(total_passes = 0; total_passes < total_access_size ;)
+	{
+		for(cur_passes = 0; cur_passes < ZIPFCUMULNUM; )
+		{
+			int zipf_index = 0;
+			//512access단위로 접근할 때 random값 생성하는 시간을 빼기 위함
+			for(int i=0; i<512; i++)
+			{
+				zipf_temp_arr[i] = get_random_access_value();
+			}
+			//int64_t check=curptr + 1;
+			//printf("%ld %ld\n", curptr, curptr+1);
+			start = start_time();	
+			UNROLL512(zipf_temp_arr[zipf_index++];)//여기에 zipf_temp접근하는 시간은 빼야하지 않나? dummy?
+			end = stop_time();
+			
+			dummy_elapsed += (end - start);
+			cur_passes += 512;
+		}
+		total_passes += ZIPFCUMULNUM;
+		curptr = curptr + ZIPFCUMULNUM;
+	}
+
+
+	res = (double)(elapsed - dummy_elapsed) * g_ns_per_tick;
+
+	printf("ns/accesses: %lf %.3f\n", res,res/(total_passes));
+
+
+
+	return (void*) &res;
+
+}
