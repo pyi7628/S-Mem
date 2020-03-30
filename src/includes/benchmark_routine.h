@@ -10,6 +10,7 @@
 #define UNROLL1024(x) UNROLL512(x) UNROLL512(x)
 
 
+void* latency_randomRead_test(void* start_address);
 void* forwSequentialRead(void* start_address);
 
 void* forwSequentialWrite(void* start_address);

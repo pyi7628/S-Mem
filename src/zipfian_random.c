@@ -75,7 +75,7 @@ int search_cumul(double random_value)
 
 	return i;//실제 value보다 1작음, 실제 offset값으로 맞는 값
 }
-
+//zipfian random 값 구할 때 사용, 0~1사이의 값
 double random_value_gen()
 {
 	srand(clock());
@@ -83,7 +83,12 @@ double random_value_gen()
 	double output = (double)random_value/RAND_MAX;
 	return output;
 }
-
+//cur_address구할 때 사용
+int random_address_value_gen()
+{
+	int output = random_value_gen()*( memory_alloc_size * GB / (ZIPFCUMULNUM*sizeof(int64_t))) ;
+	return output;
+}
 void init_zipfian_cumul()
 {
 	get_zipfian_cumul("output/cumul_90.txt",&zipf_arr);

@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 	mem = malloc(size);
 
 	//memory init
-	memset(mem, 0, size);
+	memset(mem, 0xFFFFFFFFFFFFFFFF, size);
 	
 	working_set_per_thread = (working_set_size*GB)/number_of_threads;//Is it possible with size_t?
 
@@ -68,7 +68,7 @@ int main(int argc, char *argv[])
 		total_access_size = working_set_size*GB/sizeof(int64_t);
 		accesses_per_iter = total_access_size/ZIPFCUMULNUM;
 		printf("extern : %ld %d\n", total_access_size, accesses_per_iter);
-		randomRead(mem);
+		latency_randomRead_test(mem);
 	}
 	else
 	{
