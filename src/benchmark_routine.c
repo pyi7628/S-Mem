@@ -9,7 +9,7 @@
 
 pthread_mutex_t mutex_lock;
 
-int32_t test(int64_t* cur_address, int* random_arr)
+/*int32_t test(int64_t* cur_address, int* random_arr)
 {
 	register int64_t val;
 	volatile int64_t* curptr  = cur_address;	
@@ -20,23 +20,56 @@ int32_t test(int64_t* cur_address, int* random_arr)
 	return 0;
 
 
+}*/
+
+int32_t test_latency(int64_t* cur_address, int random_arr)
+{
+	register int64_t val;
+	volatile int64_t* curptr  = cur_address;	
+	
+	int index = 0;
+	val = *(curptr + random_arr); 
+
+	return 0;
+
+}
+int32_t test_dummy_latency(int64_t* cur_address, int random_arr)
+{
+	register int64_t val;
+	volatile int64_t* curptr  = cur_address;	
+	
+	int index = 0;
+	//*(curptr + random_arr); 
+
+	return 0;
+
 }
 void* latency_randomRead_test(void* start_address)
 {
 	int64_t start, end;
 	int64_t elapsed = 0;
+	int64_t dummy_elapsed = 0;
+	int64_t adjusted = 0;
 	double res;
 	int64_t passes=0;
+	int64_t dummy_passes = 0;
 	int64_t* cur_address = (int64_t*)start_address;
 
-	int zipf_temp_arr[257][513]={0,};
-	int64_t cur_address_arr[257]={0,};
+	//not unroll
+	int zipf_temp = 0;
+	int64_t cur_address_temp = 0;
 
-	int64_t target_ticks = g_ticks_per_ms * DURATION_MS;
+
+	//unroll
+	//int zipf_temp_arr[257][513]={0,};
+	//int64_t cur_address_arr[257]={0,};
+
+	int64_t target_ticks = g_ticks_per_ms * DURATION_MS;//8은 임의의 8GB로 생각한 것
 
 	while(elapsed < target_ticks)
 	{
-		int zipf_index = 0;
+		//unroll
+		/*int zipf_index = 0;
 		int cur_address_index = 0;
 		for(int i=0;i<256;i++)
 		{
@@ -46,21 +79,50 @@ void* latency_randomRead_test(void* start_address)
 			}
 			cur_address_arr[i] = random_address_value_gen();
 			//printf("%d\n ", cur_address_arr[i]);
-		}
+		}*/
+		
+		zipf_temp = get_random_access_value();
+		cur_address_temp = random_address_value_gen();
+
 		start = start_time();
-		UNROLL256(test(cur_address + (cur_address_arr[cur_address_index++]*ZIPFCUMULNUM), zipf_temp_arr[zipf_index++]);)
+		//UNROLL256(test(cur_address + (cur_address_arr[cur_address_index++]*ZIPFCUMULNUM), zipf_temp_arr[zipf_index++]);)
+		test_latency(cur_address + (cur_address_temp * ZIPFCUMULNUM), zipf_temp);
 		end = stop_time();
 		elapsed += (end - start);
-		passes += 256;
+		passes += 1;
 		//printf("elapsed: %ld, target: %ld\n", elapsed, target_ticks);
 	}
+	while(dummy_passes< passes)
+	{
+		//unroll
+		/*int zipf_index = 0;
+		int cur_address_index = 0;
+		for(int i=0;i<256;i++)
+		{
+			for(int j=0; j<512; j++)
+			{
+				zipf_temp_arr[i][j] = get_random_access_value();
+			}
+			cur_address_arr[i] = random_address_value_gen();
+			//printf("%d\n ", cur_address_arr[i]);
+		}*/
+		
+		zipf_temp = get_random_access_value();
+		cur_address_temp = random_address_value_gen();
 
-	res = (double)elapsed * g_ns_per_tick;
-	printf(" elapsed: %ld clock: %.3f ns: %lf g_tick: %ld\n",elapsed,  res, g_ns_per_tick,g_ticks_per_ms);
-	printf("ns/accesses: %lf %.3f %ld\n",res,  (double)(elapsed*g_ns_per_tick)/(double)(passes*512), passes);
-
-//	pthread_muex_lock(&mutex_lock);
-//	pthread_mutex_unlock(&mutex_lock);
+		start = start_time();
+		//UNROLL256(test(cur_address + (cur_address_arr[cur_address_index++]*ZIPFCUMULNUM), zipf_temp_arr[zipf_index++]);)
+		test_dummy_latency(cur_address + (cur_address_temp * ZIPFCUMULNUM), zipf_temp);
+		end = stop_time();
+		dummy_elapsed += (end - start);
+		dummy_passes += 1;
+		//printf("elapsed: %ld, target: %ld\n", elapsed, target_ticks);
+	}
+	
+	adjusted = elapsed - dummy_elapsed;
+	res = (double)adjusted * g_ns_per_tick;
+	//printf(" elapsed: %ld clock: %.3f ns: %lf g_tick: %ld\n",elapsed,  res, g_ns_per_tick,g_ticks_per_ms);
+	printf("result: %.3f \n", (double)(adjusted * g_ns_per_tick)/(double)(passes*1));
 
 	return (void*)(&res);//여기서 latency return
 
