@@ -63,12 +63,18 @@ int main(int argc, char *argv[])
 		//random value 값 받아오는 부분!!
 		//get_zipfian_cumul("../output/cumul_90.txt");
 		init_zipfian_cumul();
-		printf("random: %d\n",get_random_access_value());
+		init_weight_arr();
+	
+		//printf("random: %d\n", random_address_value_gen());
+		for(int i=0;i<20;i++)
+		{
+			random_address_value_gen();
+		}
 
 		total_access_size = working_set_size*GB/sizeof(int64_t);
+		//1M 으로 구간 나눴을 때 각각이 얼마인지!!
 		accesses_per_iter = total_access_size/ZIPFCUMULNUM;
-		printf("extern : %ld %d\n", total_access_size, accesses_per_iter);
-		latency_randomRead_test(mem);
+		//latency_randomRead_test(mem);
 	}
 	else
 	{

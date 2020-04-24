@@ -56,69 +56,88 @@ void* latency_randomRead_test(void* start_address)
 	int64_t* cur_address = (int64_t*)start_address;
 
 	//not unroll
-	int zipf_temp = 0;
-	int64_t cur_address_temp = 0;
+	int address_offset = 0;
+	int second_address_offset = 0;
+	int64_t zipf_address_offset = 0;
 
 
 	//unroll
-	//int zipf_temp_arr[257][513]={0,};
-	//int64_t cur_address_arr[257]={0,};
+	int zipf_temp_arr[257]={0,};
+	int64_t cur_address_arr[257]={0,};
 
 	int64_t target_ticks = g_ticks_per_ms * DURATION_MS;//8은 임의의 8GB로 생각한 것
 
 	while(elapsed < target_ticks)
 	{
 		//unroll
-		/*int zipf_index = 0;
+	/*	int zipf_index = 0;
 		int cur_address_index = 0;
 		for(int i=0;i<256;i++)
 		{
-			for(int j=0; j<512; j++)
-			{
-				zipf_temp_arr[i][j] = get_random_access_value();
-			}
+
+			zipf_temp_arr[i] = get_random_access_value();
 			cur_address_arr[i] = random_address_value_gen();
 			//printf("%d\n ", cur_address_arr[i]);
-		}*/
-		
-		zipf_temp = get_random_access_value();
-		cur_address_temp = random_address_value_gen();
-
+		}
+		`
 		start = start_time();
-		//UNROLL256(test(cur_address + (cur_address_arr[cur_address_index++]*ZIPFCUMULNUM), zipf_temp_arr[zipf_index++]);)
-		test_latency(cur_address + (cur_address_temp * ZIPFCUMULNUM), zipf_temp);
+		UNROLL256(test_latency(cur_address + (cur_address_arr[cur_address_index++] * ZIPFCUMULNUM), zipf_temp_arr[zipf_index++]);)
+		end = stop_time();
+		elapsed += (end - start);
+		passes += 256;
+	*/
+		//unroll x
+
+		address_offset = random_address_value_gen();
+		for(int i=0;i<10;i++)
+		{
+		second_address_offset = random_second_address_gen()*(memory_alloc_size * GB / ZIPFCUMULNUM * sizeof(int64_t))/32;
+		printf("se: %d\n", second_address_offset);
+		}
+		zipf_address_offset = get_random_access_value()*(memory_alloc_size * GB / (ZIPFCUMULNUM * sizeof(int64_t))); // 이거랑 cur_address합친거 값 어떻게 나오는지 확인해보기
+		start = start_time();
+		test_latency(cur_address + zipf_address_offset, second_address_offset+address_offset);
 		end = stop_time();
 		elapsed += (end - start);
 		passes += 1;
-		//printf("elapsed: %ld, target: %ld\n", elapsed, target_ticks);
+	
+	//	printf(" elap: %ld, target: %ld\n ", elapsed, target_ticks );
 	}
 	while(dummy_passes< passes)
 	{
+	/*	
 		//unroll
-		/*int zipf_index = 0;
+		int zipf_index = 0;
 		int cur_address_index = 0;
 		for(int i=0;i<256;i++)
 		{
-			for(int j=0; j<512; j++)
-			{
-				zipf_temp_arr[i][j] = get_random_access_value();
-			}
+			zipf_temp_arr[i] = get_random_access_value();
 			cur_address_arr[i] = random_address_value_gen();
 			//printf("%d\n ", cur_address_arr[i]);
-		}*/
-		
-		zipf_temp = get_random_access_value();
-		cur_address_temp = random_address_value_gen();
-
+		}
+	
 		start = start_time();
 		//UNROLL256(test(cur_address + (cur_address_arr[cur_address_index++]*ZIPFCUMULNUM), zipf_temp_arr[zipf_index++]);)
-		test_dummy_latency(cur_address + (cur_address_temp * ZIPFCUMULNUM), zipf_temp);
+		UNROLL256(test_dummy_latency(cur_address + (cur_address_arr[cur_address_index++] * ZIPFCUMULNUM), zipf_temp_arr[zipf_index++]);)
 		end = stop_time();
+		dummy_elapsed += (end - start);
+		dummy_passes += 256;
+	*/
+		//unroll x
+		address_offset = 0;
+		second_address_offset = 0;
+		//random_address_value_gen();
+		zipf_address_offset = 0;
+		//get_random_access_value()*(memory_alloc_size * GB / (ZIPFCUMULNUM * sizeof(int64_t))); // 이거랑 cur_address합친거 값 어떻게 나오는지 확인해보기
+	
+		start = start_time();
+		test_latency(cur_address + zipf_address_offset, second_address_offset+address_offset);
+		end = stop_time();
+
 		dummy_elapsed += (end - start);
 		dummy_passes += 1;
 		//printf("elapsed: %ld, target: %ld\n", elapsed, target_ticks);
 	}
-	
 	adjusted = elapsed - dummy_elapsed;
 	res = (double)adjusted * g_ns_per_tick;
 	//printf(" elapsed: %ld clock: %.3f ns: %lf g_tick: %ld\n",elapsed,  res, g_ns_per_tick,g_ticks_per_ms);

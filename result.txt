@@ -1,28 +1,28 @@
-e-s: 5000132763
-random: 4884
+e-s: 5000136077
+random: 1314
 extern : 2147483648 2048
-result: 115.924 
-e-s: 5000132629
-random: 20146
+result: 36.319 
+e-s: 5000127242
+random: 2
 extern : 4294967296 4096
-result: 157.275 
-e-s: 5000141684
-random: 0
+result: 46.880 
+e-s: 5000138869
+random: 46
 extern : 6442450944 6144
-result: 193.105 
-e-s: 5000133039
-random: 24062
+result: 67.471 
+e-s: 5000135708
+random: 304602
 extern : 8589934592 8192
-result: 274.218 
-e-s: 5000134162
-random: 71378
+result: 86.782 
+e-s: 5000127332
+random: 3460
 extern : 10737418240 10240
-result: 302.688 
-e-s: 5000133746
-random: 4
+result: 106.938 
+e-s: 5000130526
+random: 295004
 extern : 12884901888 12288
-result: 347.206 
-e-s: 5000134376
-random: 21516
+result: 114.748 
+e-s: 5000136210
+random: 812258
 extern : 15032385536 14336
-result: 382.619 
+result: 133.444 
