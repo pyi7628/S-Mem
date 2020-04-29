@@ -61,15 +61,20 @@ int main(int argc, char *argv[])
 	if(is_random)
 	{
 		//random value 값 받아오는 부분!!
-		//get_zipfian_cumul("../output/cumul_90.txt");
-		init_zipfian_cumul();
-		init_weight_arr();
-	
+		mini_init_zipfian_cumul();
+		
 		//printf("random: %d\n", random_address_value_gen());
-		for(int i=0;i<20;i++)
+		/*for(int i=0;i<20;i++)
 		{
 			random_address_value_gen();
 		}
+		*/
+		//
+		/////test///////
+		//
+	//	zipf_data_first_access_check();
+
+		mini_zipf_data_check();
 
 		total_access_size = working_set_size*GB/sizeof(int64_t);
 		//1M 으로 구간 나눴을 때 각각이 얼마인지!!

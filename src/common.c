@@ -49,7 +49,6 @@ void init_timer()
 	duration.tv_nsec = (DURATION_MS % 1000) * 1e6;
 	nanosleep(&duration, &remainder);
 	int64_t end = stop_time();
-	printf("e-s: %ld\n", end-start);
 	g_ticks_per_ms = (end - start) / DURATION_MS;
 
 	g_ns_per_tick =  1 / (double)g_ticks_per_ms * 1e6;

@@ -9,6 +9,36 @@
 
 pthread_mutex_t mutex_lock;
 
+
+void zipf_data_check()
+{
+	long long i = 0;
+	int stride = memory_alloc_size*GB/ZIPFCUMULNUM;
+	while(i<memory_alloc_size*GB)
+	{
+		int64_t cur_address_offset = (get_random_access_value()*(int64_t)stride)+random_address_value_gen();
+		//long long a=(long long)128*GB;
+		printf("%lld\n",cur_address_offset);
+		i++;
+	}
+
+}
+
+void zipf_data_first_access_check()
+{
+	long long i = 0;
+	int stride = memory_alloc_size*GB/ZIPFCUMULNUM;
+	while(i<memory_alloc_size*GB)
+	{
+		//int second_offset = random_value_gen()*(double)(stride/sizeof(int64_t));
+		int64_t cur_address_offset = (get_random_access_value()*(int64_t)stride)+(int64_t)real_random_address_gen();
+		//long long a=(long long)128*GB;
+	
+		printf("%lld\n", cur_address_offset);
+		i++;
+	}
+
+}
 /*int32_t test(int64_t* cur_address, int* random_arr)
 {
 	register int64_t val;
@@ -67,6 +97,9 @@ void* latency_randomRead_test(void* start_address)
 
 	int64_t target_ticks = g_ticks_per_ms * DURATION_MS;//8은 임의의 8GB로 생각한 것
 
+
+
+	////////////////start_latency_checking/////////////////////////
 	while(elapsed < target_ticks)
 	{
 		//unroll
@@ -103,6 +136,9 @@ void* latency_randomRead_test(void* start_address)
 	
 	//	printf(" elap: %ld, target: %ld\n ", elapsed, target_ticks );
 	}
+
+
+	////////////////////////dummy_bench////////////////////////
 	while(dummy_passes< passes)
 	{
 	/*	
