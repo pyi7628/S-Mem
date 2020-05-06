@@ -124,7 +124,6 @@ void* latency_randomRead_test(void* start_address)
 		address_offset = random_address_value_gen();
 		for(int i=0;i<10;i++)
 		{
-		second_address_offset = random_second_address_gen()*(memory_alloc_size * GB / ZIPFCUMULNUM * sizeof(int64_t))/32;
 		printf("se: %d\n", second_address_offset);
 		}
 		zipf_address_offset = get_random_access_value()*(memory_alloc_size * GB / (ZIPFCUMULNUM * sizeof(int64_t))); // 이거랑 cur_address합친거 값 어떻게 나오는지 확인해보기

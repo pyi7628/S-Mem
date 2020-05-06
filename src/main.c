@@ -22,7 +22,7 @@ size_t memory_alloc_size = 1;
 
 //random
 long long total_access_size = 0;
-int accesses_per_iter = 0;
+int accesses_per_section = 0;
 
 void *mem;
 
@@ -74,11 +74,24 @@ int main(int argc, char *argv[])
 		//
 	//	zipf_data_first_access_check();
 
-		mini_zipf_data_check();
+	//	mini_zipf_data_check();
+		long long i =0;
+		//int a_check[128]={0,};
+		//int num=0;
+		while(i<memory_alloc_size*GB)	
+		{
+			get_zipfian_offset();
+			//a_check[num]++;
+			i++;
+		}
+		/*for(int j=0;j<128;j++)
+		{
+			printf("<%d> %lf ",j,(double)a_check[j]/(memory_alloc_size*GB/8));
+		}*///확률분포 test
 
 		total_access_size = working_set_size*GB/sizeof(int64_t);
 		//1M 으로 구간 나눴을 때 각각이 얼마인지!!
-		accesses_per_iter = total_access_size/ZIPFCUMULNUM;
+		accesses_per_section = total_access_size/ZIPFCUMULNUM;
 		//latency_randomRead_test(mem);
 	}
 	else

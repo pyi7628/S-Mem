@@ -95,6 +95,8 @@ int real_random_address_gen()
 	return output;
 }
 
+
+//ist test에서 사용한, 삼각형 형태의 분포!-> 이거 확인 결과 분포상 문제 발생한다..
 //cur_address구할 때 사용, 여기에서 적분한 값으로 access값받아오기
 //0~(k-1)/sizeof(access_size)
 int random_address_value_gen()
@@ -113,7 +115,7 @@ int random_address_value_gen()
 //mini test
 void mini_init_zipfian_cumul()
 {
-	get_zipfian_cumul("output/mini_cumul_40.txt", &zipf_arr);
+	get_zipfian_cumul("output/mini_cumul_120.txt", &zipf_arr);
 }
 int mini_search_cumul(double random_value)
 {	
@@ -172,6 +174,52 @@ void mini_zipf_data_check()
 
 }
 
+// mini end
+
+//2st testa
+//cur: mini 
+int64_t get_zipfian_offset()
+{
+	int64_t result = 0;
+	int k = (memory_alloc_size*GB/8) / (ZIPFCUMULNUM/8 * sizeof(int64_t));//원래는 /8없으면 됨
+	int stride =( memory_alloc_size*GB/8)/(ZIPFCUMULNUM/8);
+	double z = random_value_gen();
+
+	int index = 0;
+	double h1, h2 = 0;
+AGAIN:	
+	index = mini_get_random_access_value();
+	
+	while(index > (ZIPFCUMULNUM/8 - 3))// or >=
+	{
+		index = mini_get_random_access_value();
+	}
+	h1 = zipf_arr[index + 1] - zipf_arr[index];//앞 확률
+	h2 = zipf_arr[index + 2] - zipf_arr[index + 1];// 뒤 확률
+	//printf("h1: %lf, h2: %lf\n",h1,h2);
+	if(h1==0 && h2==0) goto AGAIN;
+
+	double h = h2 - h1;//기울기 높이
+
+	double S = (h1 + h2) * k / 2;//넓이
+
+	int a = 0;
+
+	if(h==0) a = z * S / h1;
+	else a = (sqrt(pow(h1,2.0)+(z*h*(h2+h1)))-h1) / (h/k);
+	
+	
+
+	//printf("a : %d z: %lf h: %.12lf h1: %.12lf index: %d\n",a, z, h,h1, index);
+	
+	result = index * (int64_t)stride+(int64_t)a*8;
+	//if(result>=134217728) printf("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+	printf("%ld\n",result);
+	return a;
+
+		
+}
+
 
 void init_zipfian_cumul()
 {
@@ -190,30 +238,7 @@ int get_random_access_value()
 	return result;
 }
 
-void init_weight_arr()
-{
-	int size = (32/2)*(32+1)*4;
-	weight_size = size; 
-	weight_arr = (int*)malloc(sizeof(int)*(size+1));
-	int count = 0;
-	for(int i = 31; i >= 0; i--)//i 값이 몇개의 access point를만들지
-	{
-		for(int j = 0; j < 4*(32-i); j++)
-		{
-			weight_arr[count++] = i;
-		}
-	}
 
-}
-
-int random_second_address_gen()
-{
-	int gen = random_value_gen()*(weight_size);
-	int result = weight_arr[gen];
-
-	return result;
-
-}
 
 void free_arr()
 {

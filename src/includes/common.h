@@ -15,7 +15,7 @@ extern int number_of_threads;
 extern size_t memory_alloc_size;
 //random
 extern long long total_access_size;
-
+int accesses_per_section;
 int64_t start_time();
 int64_t stop_time();
 void init_timer();
