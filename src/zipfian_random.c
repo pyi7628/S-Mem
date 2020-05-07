@@ -3,6 +3,7 @@
 #include <time.h>//난수
 #include <math.h>
 #include "common.h"
+#include "zipfian_random.h"
 
 double* zipf_arr=NULL;
 int* weight_arr=NULL;
@@ -177,22 +178,22 @@ void mini_zipf_data_check()
 // mini end
 
 //2st testa
-//cur: mini 
-int64_t get_zipfian_offset()
+//cur: mini x
+struct OFFSET get_zipfian_offset()
 {
-	int64_t result = 0;
-	int k = (memory_alloc_size*GB/8) / (ZIPFCUMULNUM/8 * sizeof(int64_t));//원래는 /8없으면 됨
-	int stride =( memory_alloc_size*GB/8)/(ZIPFCUMULNUM/8);
+	struct OFFSET result;
+	int k = (memory_alloc_size*GB) / (ZIPFCUMULNUM * sizeof(int64_t));//원래는 /8없으면 됨
+	//int stride =( memory_alloc_size*GB)/(ZIPFCUMULNUM);
 	double z = random_value_gen();
 
 	int index = 0;
-	double h1, h2 = 0;
+	double h1, h2 = 0;//각 구간의 첫번째 확률, 마지막 확률
 AGAIN:	
-	index = mini_get_random_access_value();
+	index = get_random_access_value();//zipfian 분포로 구간 start point 정해줌
 	
-	while(index > (ZIPFCUMULNUM/8 - 3))// or >=
+	while(index > (ZIPFCUMULNUM - 3))// or >=
 	{
-		index = mini_get_random_access_value();
+		index = get_random_access_value();
 	}
 	h1 = zipf_arr[index + 1] - zipf_arr[index];//앞 확률
 	h2 = zipf_arr[index + 2] - zipf_arr[index + 1];// 뒤 확률
@@ -212,10 +213,11 @@ AGAIN:
 
 	//printf("a : %d z: %lf h: %.12lf h1: %.12lf index: %d\n",a, z, h,h1, index);
 	
-	result = index * (int64_t)stride+(int64_t)a*8;
-	//if(result>=134217728) printf("ERROR!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
-	printf("%ld\n",result);
-	return a;
+	result.sp = index; 
+	result.so = a;
+		//index * (int64_t)stride+(int64_t)a*sizeof(int64_t);
+	//printf("%lld\n",result/sizeof(int64_t));
+	return result;
 
 		
 }

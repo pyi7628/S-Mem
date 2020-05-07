@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "benchmark_routine.h"
+#include "zipfian_random.h"
 
 
 pthread_mutex_t mutex_lock;
@@ -52,13 +53,12 @@ void zipf_data_first_access_check()
 
 }*/
 
-int32_t test_latency(int64_t* cur_address, int random_arr)
+int32_t test_latency(int64_t* cur_address, int64_t random_offset)
 {
 	register int64_t val;
 	volatile int64_t* curptr  = cur_address;	
-	
-	int index = 0;
-	val = *(curptr + random_arr); 
+	printf("address: %lld %lld %ld\n", curptr, curptr+random_offset, random_offset);
+	val = *(curptr + random_offset); 
 
 	return 0;
 
@@ -66,9 +66,7 @@ int32_t test_latency(int64_t* cur_address, int random_arr)
 int32_t test_dummy_latency(int64_t* cur_address, int random_arr)
 {
 	register int64_t val;
-	volatile int64_t* curptr  = cur_address;	
-	
-	int index = 0;
+	volatile int64_t* curptr  = cur_address;
 	//*(curptr + random_arr); 
 
 	return 0;
@@ -84,11 +82,13 @@ void* latency_randomRead_test(void* start_address)
 	int64_t passes=0;
 	int64_t dummy_passes = 0;
 	int64_t* cur_address = (int64_t*)start_address;
-
+	int stride = (memory_alloc_size * GB) / (ZIPFCUMULNUM * sizeof(int64_t));
 	//not unroll
 	int address_offset = 0;
 	int second_address_offset = 0;
-	int64_t zipf_address_offset = 0;
+	struct OFFSET zipf_address_offset;
+	
+	int64_t random_offset=0;
 
 
 	//unroll
@@ -121,14 +121,13 @@ void* latency_randomRead_test(void* start_address)
 	*/
 		//unroll x
 
-		address_offset = random_address_value_gen();
-		for(int i=0;i<10;i++)
-		{
-		printf("se: %d\n", second_address_offset);
-		}
-		zipf_address_offset = get_random_access_value()*(memory_alloc_size * GB / (ZIPFCUMULNUM * sizeof(int64_t))); // 이거랑 cur_address합친거 값 어떻게 나오는지 확인해보기
+		zipf_address_offset = get_zipfian_offset();
+		random_offset = zipf_address_offset.sp * (int64_t)stride + (int64_t)zipf_address_offset.so;
+
+		printf("zip off: %lld\n", random_offset);
+			//이전 zipfian offset임, get_random_access_value()*(memory_alloc_size * GB / (ZIPFCUMULNUM * sizeof(int64_t))); // 이거랑 cur_address합친거 값 어떻게 나오는지 확인해보기
 		start = start_time();
-		test_latency(cur_address + zipf_address_offset, second_address_offset+address_offset);
+		test_latency(cur_address , random_offset);
 		end = stop_time();
 		elapsed += (end - start);
 		passes += 1;
@@ -154,19 +153,21 @@ void* latency_randomRead_test(void* start_address)
 		start = start_time();
 		//UNROLL256(test(cur_address + (cur_address_arr[cur_address_index++]*ZIPFCUMULNUM), zipf_temp_arr[zipf_index++]);)
 		UNROLL256(test_dummy_latency(cur_address + (cur_address_arr[cur_address_index++] * ZIPFCUMULNUM), zipf_temp_arr[zipf_index++]);)
+	
 		end = stop_time();
 		dummy_elapsed += (end - start);
 		dummy_passes += 256;
 	*/
-		//unroll x
-		address_offset = 0;
-		second_address_offset = 0;
+		//unroll
 		//random_address_value_gen();
-		zipf_address_offset = 0;
+		zipf_address_offset.sp=0;
+		zipf_address_offset.so=0;
+		random_offset = zipf_address_offset.sp * (int64_t)stride + (int64_t)zipf_address_offset.so;
+
 		//get_random_access_value()*(memory_alloc_size * GB / (ZIPFCUMULNUM * sizeof(int64_t))); // 이거랑 cur_address합친거 값 어떻게 나오는지 확인해보기
 	
 		start = start_time();
-		test_latency(cur_address + zipf_address_offset, second_address_offset+address_offset);
+		test_latency(cur_address, random_offset);
 		end = stop_time();
 
 		dummy_elapsed += (end - start);

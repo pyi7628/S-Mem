@@ -1,4 +1,9 @@
 
+struct OFFSET{
+	int sp;//zipfian start point
+	int so;//section offset
+};
+
 void get_zipfian_values(char* file_name ,double** zipf_arr);
 void get_zipfian_cumul(char* file_name ,double** zipf_arr);
 int search_cumul(double random_value);
@@ -13,5 +18,4 @@ void free_arr();
 //////
 void mini_zipf_data_check();
 void mini_init_zipfian_cumul();
-
-int64_t get_zipfian_offset();
+struct OFFSET get_zipfian_offset();

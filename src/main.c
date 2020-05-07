@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 	if(is_random)
 	{
 		//random value 값 받아오는 부분!!
-		mini_init_zipfian_cumul();
+		init_zipfian_cumul();
 		
 		//printf("random: %d\n", random_address_value_gen());
 		/*for(int i=0;i<20;i++)
@@ -75,24 +75,24 @@ int main(int argc, char *argv[])
 	//	zipf_data_first_access_check();
 
 	//	mini_zipf_data_check();
-		long long i =0;
+	//	long long i =0;
 		//int a_check[128]={0,};
 		//int num=0;
-		while(i<memory_alloc_size*GB)	
+	/*	while(i<memory_alloc_size*GB)	
 		{
 			get_zipfian_offset();
 			//a_check[num]++;
 			i++;
-		}
+		}*/
 		/*for(int j=0;j<128;j++)
 		{
 			printf("<%d> %lf ",j,(double)a_check[j]/(memory_alloc_size*GB/8));
 		}*///확률분포 test
 
-		total_access_size = working_set_size*GB/sizeof(int64_t);
+	//	total_access_size = working_set_size*GB/sizeof(int64_t);
 		//1M 으로 구간 나눴을 때 각각이 얼마인지!!
-		accesses_per_section = total_access_size/ZIPFCUMULNUM;
-		//latency_randomRead_test(mem);
+	//	accesses_per_section = total_access_size/ZIPFCUMULNUM;
+		latency_randomRead_test(mem);
 	}
 	else
 	{
